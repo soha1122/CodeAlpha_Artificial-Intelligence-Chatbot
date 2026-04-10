@@ -14,9 +14,62 @@ public class ChatbotGUI {
     static int messageCount = 0;
     static String lastIntent = "";
 
-    public static void main(String[] args){
+    static JFrame frame;
 
-        JFrame frame = new JFrame("Advanced AI Chatbot");
+    public static void main(String[] args){
+        showLogin();
+    }
+
+    // ✅ LOGIN SCREEN
+    static void showLogin(){
+
+        JFrame loginFrame = new JFrame("Login");
+        loginFrame.setSize(400,300);
+        loginFrame.setLayout(new GridBagLayout());
+        loginFrame.getContentPane().setBackground(new Color(10,25,47));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        JLabel title = new JLabel("Login");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Arial",Font.BOLD,22));
+
+        JTextField username = new JTextField(15);
+        JPasswordField password = new JPasswordField(15);
+
+        JButton loginBtn = new JButton("Login");
+
+        gbc.gridy=0;
+        loginFrame.add(title,gbc);
+
+        gbc.gridy=1;
+        loginFrame.add(username,gbc);
+
+        gbc.gridy=2;
+        loginFrame.add(password,gbc);
+
+        gbc.gridy=3;
+        loginFrame.add(loginBtn,gbc);
+
+        loginBtn.addActionListener(e->{
+            String user = username.getText();
+            String pass = new String(password.getPassword());
+
+            if(user.equals("admin") && pass.equals("123")){
+                loginFrame.dispose();
+                memory.put("name", user);
+                showChatbot();
+            }else{
+                JOptionPane.showMessageDialog(loginFrame,"Invalid Login");
+            }
+        });
+
+        loginFrame.setVisible(true);
+    }
+
+    static void showChatbot(){
+
+        frame = new JFrame("Advanced AI Chatbot");
         frame.setSize(450,650);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
@@ -79,29 +132,21 @@ public class ChatbotGUI {
         saveChat(text,response);
     }
 
-    // ✅ UPDATED METHOD (SIZE FIX ONLY)
     static void addMessage(String sender,String message,Color color,boolean isUser){
 
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(new Color(10,25,47));
 
-        int maxWidth = 260;
-
-        JLabel msg = new JLabel("<html><div style='width:"+maxWidth+"px'>" + message + "</div></html>");
+        JLabel msg = new JLabel("<html>" + message + "</html>");
         msg.setOpaque(true);
         msg.setBackground(color);
         msg.setForeground(Color.WHITE);
         msg.setBorder(BorderFactory.createEmptyBorder(10,15,10,15));
 
-        JPanel bubble = new JPanel(new BorderLayout());
+        JPanel bubble = new JPanel(new FlowLayout(isUser ? FlowLayout.RIGHT : FlowLayout.LEFT));
         bubble.setBackground(new Color(10,25,47));
 
-        if(isUser){
-            bubble.add(msg,BorderLayout.EAST);
-        } else {
-            bubble.add(msg,BorderLayout.WEST);
-        }
-
+        bubble.add(msg);
         wrapper.add(bubble,BorderLayout.CENTER);
 
         chatPanel.add(wrapper);
@@ -115,27 +160,25 @@ public class ChatbotGUI {
         });
     }
 
+    //  AI UNDERSTANDING
     static String getResponse(String input){
 
         String text = input.toLowerCase();
 
-        if(text.equals("/clear")){
-            chatPanel.removeAll();
-            chatPanel.revalidate();
-            chatPanel.repaint();
-            return "Chat cleared!";
+        // Remove punctuation (basic NLP)
+        text = text.replaceAll("[^a-zA-Z0-9 ]","");
+
+        // keywords detection
+        if(text.contains("hello") || text.contains("hi") || text.contains("salam")){
+            return "Hello 😊";
         }
 
-        if(text.equals("/stats")){
-            return "Total messages: " + messageCount;
+        if(text.contains("how are you")){
+            return "I'm doing great! 💙";
         }
 
-        if(text.equals("/help")){
-            return "/clear /help /time /stats\nTry chatting normally too 😊";
-        }
-
-        if(text.equals("/time")){
-            return "Time: " + java.time.LocalTime.now().withNano(0);
+        if(text.contains("your name")){
+            return "I'm your AI Chatbot 🤖";
         }
 
         if(text.contains("my name is")){
@@ -145,44 +188,60 @@ public class ChatbotGUI {
         }
 
         if(text.contains("who am i")){
-            return memory.containsKey("name") ? "You are " + memory.get("name") : "I don't know yet 😅";
+            return memory.containsKey("name") ? "You are " + memory.get("name") : "I don't know yet";
         }
 
-        if(lastIntent.equals("ask_stock")){
-            lastIntent="";
-            return "Great choice! That stock is popular 📈";
-        }
-
-        if(text.contains("stock")){
-            lastIntent="ask_stock";
-            return "Which stock are you interested in?";
-        }
-
-        if(text.matches(".*\\b(hi|hello|hey)\\b.*")){
-            return memory.containsKey("name") ? "Hello "+memory.get("name")+" 😊" : "Hello 😊";
-        }
-
-        if(text.contains("how are you")){
-            return "I'm doing great 💙";
+        if(text.contains("time")){
+            return "Time: " + java.time.LocalTime.now().withNano(0);
         }
 
         if(text.contains("date")){
             return "Date: " + java.time.LocalDate.now();
         }
 
+        if(text.contains("joke")){
+            return "Programmers don’t like nature because of bugs 😄";
+        }
+        if(text.contains("what are you doing")){
+            return "I am just here for you! You neend me, Just let me know 😄";
+        }
+        if(text.contains("I want to ask a question")){
+            return "Yes please. I am here for you 😄";
+        }
+        if(text.contains("How are you")){
+            return "I am great! what about you?";
+        }
+        if(text.contains("Can i ask you")){
+            return "Yes Absolutely";
+        }
+
+        if(text.contains("study") || text.contains("exam")){
+            return "Focus! 💪 you can do it!";
+        }
+
+         if(text.contains("need") || text.contains("want")){
+            return "Yes sure, I will please to!";
+        }
+
+        if(text.contains("sad")){
+            return "Don't worry 💙 I'm here for you";
+        }
+
+        if(text.contains("stock")){
+            lastIntent="stock";
+            return "Which stock?";
+        }
+
+        if(lastIntent.equals("stock")){
+            lastIntent="";
+            return "Nice 📈 good choice!";
+        }
+
         if(text.contains("bye")){
             return "Goodbye 👋";
         }
 
-        String[] replies = {
-            "Interesting 🤔",
-            "Tell me more 👀",
-            "I understand 😊",
-            "Nice 👍",
-            "I'm learning more every day 🤖"
-        };
-
-        return replies[new Random().nextInt(replies.length)];
+        return "I understand a bit 😊 tell me more!";
     }
 
     static void saveChat(String user, String bot){
